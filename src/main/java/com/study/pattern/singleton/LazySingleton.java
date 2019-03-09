@@ -10,6 +10,10 @@ public class LazySingleton {
     private static LazySingleton instance;
 
     private LazySingleton() {
+        //防止反射调用
+//        if (instance != null) {
+//            throw new Exception("非法调用");
+//        }
     }
 
     public static synchronized LazySingleton getInstance() {
