@@ -4,6 +4,7 @@ package com.study.pattern.singleton;
  * 双重检测
  */
 public class DoubleCheckSingleton {
+    //
     private static volatile DoubleCheckSingleton instance;
 
     private DoubleCheckSingleton() {
