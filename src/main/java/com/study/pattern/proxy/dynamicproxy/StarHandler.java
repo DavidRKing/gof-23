@@ -1,6 +1,5 @@
 package com.study.pattern.proxy.dynamicproxy;
 
-import java.io.ObjectInputStream;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
