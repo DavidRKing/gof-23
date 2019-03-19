@@ -27,5 +27,7 @@ public class Client {
 
         chess1.display(new Coordinate(10, 10));
         chess2.display(new Coordinate(20, 20));
+
+
     }
 }
