@@ -2,11 +2,18 @@ package com.study.nio;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.charset.CharacterCodingException;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.Map;
 
 /**
  * 一、通道（Channel）：用于源节点与目标节点的连接。
@@ -36,6 +43,14 @@ import java.nio.file.StandardOpenOption;
  * 四、通道之间的数据传输
  * transferFrom()
  * transferTo()
+ * 五、分散（scatter） 与聚集 （gather）
+ * 分散读取（scatter reader）：将通道中的数据分散到多个缓冲区中
+ * 聚集写入（gathering writes）：将多个缓冲区中的数据聚集到通道中
+ * <p>
+ * 六、字符集Charset
+ * <p>
+ * 编码：字符串--->字节数组
+ * 解码: 字节数组---->字符串
  */
 public class TestChannel {
 
@@ -87,5 +102,66 @@ public class TestChannel {
         inChannel.transferTo(0, inChannel.size(), outChannel);
         inChannel.close();
         outChannel.close();
+    }
+
+    /**
+     * 分散和聚集写入
+     *
+     * @throws Exception
+     */
+    public void test4() throws Exception {
+        RandomAccessFile raf1 = new RandomAccessFile("1.txt", "rw");
+        //1.获取通道
+        FileChannel channel1 = raf1.getChannel();
+        //2.分配指定大小的缓冲区
+        ByteBuffer buf1 = ByteBuffer.allocate(100);
+        ByteBuffer buf2 = ByteBuffer.allocate(1024);
+        //3.分散读取
+        ByteBuffer[] bufs = {buf1, buf2};
+        channel1.read(bufs);
+        for (ByteBuffer buf : bufs) {
+            buf.flip();
+        }
+        System.out.println(new String(bufs[0].array(), 0, bufs[0].limit()));
+        System.out.println("-----------------------");
+        System.out.println(new String(bufs[1].array(), 0, bufs[1].limit()));
+
+        //4.聚集写入
+        RandomAccessFile raf2 = new RandomAccessFile("2.txt", "rw");
+        FileChannel channl2 = raf2.getChannel();
+
+        channl2.write(bufs);
+
+
+    }
+
+    //字符集
+    public void test5() {
+        Map<String, Charset> map = Charset.availableCharsets();
+        //支持多少种字符集
+        for (Map.Entry<String, Charset> charsetEntry : map.entrySet()) {
+            System.out.println(charsetEntry.getKey() + " " + charsetEntry.getValue());
+        }
+    }
+
+
+    public void test6() throws CharacterCodingException {
+        //按照GBK编码，按照GBK解码。所以不会乱码
+        Charset cs1 = Charset.forName("GBK");
+        //获取编码器
+        CharsetEncoder ce = cs1.newEncoder();
+        //获取解码器
+        CharsetDecoder cd = cs1.newDecoder();
+
+        CharBuffer cbuf = CharBuffer.allocate(1024);
+        cbuf.put("你好啊");
+        cbuf.flip();
+
+        //编码
+        ByteBuffer bBuf = ce.encode(cbuf);
+        //解码
+        CharBuffer cBuf2 = cd.decode(bBuf);
+        System.out.println(cBuf2.toString());
+
     }
 }
